@@ -1,13 +1,17 @@
 "use client";
 
+import { Suspense } from 'react';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Form from '@components/Form';
 
+// Add this to disable pre-rendering for this page
+export const dynamic = 'force-dynamic';
+
 const EditPrompt = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const promptId = searchParams.get('id'); // This should only run on the client side
+  const promptId = searchParams.get('id'); // Ensure this runs only on the client
 
   const [submitting, setSubmitting] = useState(false);
   const [post, setPost] = useState({
@@ -61,7 +65,7 @@ const EditPrompt = () => {
   };
 
   return (
-    <div>
+    <Suspense fallback={<div>Loading prompt details...</div>}>
       <Form
         type="Edit"
         post={post}
@@ -69,7 +73,7 @@ const EditPrompt = () => {
         submitting={submitting}
         handleSubmit={updatePrompt}
       />
-    </div>
+    </Suspense>
   );
 };
 
