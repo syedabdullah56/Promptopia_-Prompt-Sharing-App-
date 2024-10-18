@@ -1,12 +1,13 @@
 "use client";
-import { useState, useEffect, Suspense } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Form from '@components/Form';
 
 const EditPrompt = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const promptId = searchParams.get('id');
+  const promptId = searchParams.get('id'); // This should only run on the client side
 
   const [submitting, setSubmitting] = useState(false);
   const [post, setPost] = useState({
@@ -15,28 +16,30 @@ const EditPrompt = () => {
   });
 
   useEffect(() => {
-    const getPromptDetails = async () => {
-      if (!promptId) return;
+    if (!promptId) return;
 
-      const response = await fetch(`/api/prompt/${promptId}`);
-      const data = await response.json();
-      setPost({
-        prompt: data.prompt,
-        tag: data.tag,
-      });
+    const getPromptDetails = async () => {
+      try {
+        const response = await fetch(`/api/prompt/${promptId}`);
+        const data = await response.json();
+
+        setPost({
+          prompt: data.prompt,
+          tag: data.tag,
+        });
+      } catch (error) {
+        console.error('Failed to fetch prompt details:', error);
+      }
     };
 
-    if (promptId) getPromptDetails();
+    getPromptDetails();
   }, [promptId]);
 
   const updatePrompt = async (e) => {
     e.preventDefault();
     setSubmitting(true);
 
-    if (!promptId) {
-      alert('Prompt ID not found');
-      return;
-    }
+    if (!promptId) return alert('Prompt ID not found');
 
     try {
       const response = await fetch(`/api/prompt/${promptId}`, {
@@ -51,14 +54,14 @@ const EditPrompt = () => {
         router.push('/');
       }
     } catch (error) {
-      console.error(error);
+      console.error('Failed to update prompt:', error);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Suspense fallback={<div>Loading prompt details...</div>}>
+    <div>
       <Form
         type="Edit"
         post={post}
@@ -66,7 +69,7 @@ const EditPrompt = () => {
         submitting={submitting}
         handleSubmit={updatePrompt}
       />
-    </Suspense>
+    </div>
   );
 };
 
