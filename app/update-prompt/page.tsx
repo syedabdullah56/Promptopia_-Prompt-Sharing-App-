@@ -1,4 +1,4 @@
-// app/update-prompt/page.tsx (or .js)
+// app/update-prompt/page.tsx
 
 "use client"; // Ensure this file is treated as a Client Component
 
@@ -17,15 +17,16 @@ const EditPrompt = () => {
     tag: '',
   });
 
+  // Effect to fetch prompt details
   useEffect(() => {
     const getPromptDetails = async () => {
-      if (!promptId) return;
+      if (!promptId) return; // If no promptId, do nothing
 
       try {
         const response = await fetch(`/api/prompt/${promptId}`);
-        if (!response.ok) throw new Error('Failed to fetch');
-        const data = await response.json();
+        if (!response.ok) throw new Error('Failed to fetch prompt details');
         
+        const data = await response.json();
         setPost({
           prompt: data.prompt,
           tag: data.tag,
@@ -38,11 +39,16 @@ const EditPrompt = () => {
     getPromptDetails();
   }, [promptId]);
 
+  // Function to update the prompt
   const updatePrompt = async (e) => {
     e.preventDefault();
     setSubmitting(true);
 
-    if (!promptId) return alert('Prompt ID not found');
+    if (!promptId) {
+      alert('Prompt ID not found');
+      setSubmitting(false);
+      return;
+    }
 
     try {
       const response = await fetch(`/api/prompt/${promptId}`, {
@@ -68,6 +74,7 @@ const EditPrompt = () => {
     }
   };
 
+  // Wrap the main component logic in Suspense
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <Form
