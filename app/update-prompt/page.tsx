@@ -1,17 +1,15 @@
-"use client";
+// app/update-prompt/page.tsx (or .js)
 
-import { Suspense } from 'react';
-import { useState, useEffect } from 'react';
+"use client"; // Ensure this file is treated as a Client Component
+
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Form from '@components/Form';
-
-// Add this to disable pre-rendering for this page
-export const dynamic = 'force-dynamic';
 
 const EditPrompt = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const promptId = searchParams.get('id'); // Ensure this runs only on the client
+  const promptId = searchParams.get('id');
 
   const [submitting, setSubmitting] = useState(false);
   const [post, setPost] = useState({
@@ -20,19 +18,20 @@ const EditPrompt = () => {
   });
 
   useEffect(() => {
-    if (!promptId) return;
-
     const getPromptDetails = async () => {
+      if (!promptId) return;
+
       try {
         const response = await fetch(`/api/prompt/${promptId}`);
+        if (!response.ok) throw new Error('Failed to fetch');
         const data = await response.json();
-
+        
         setPost({
           prompt: data.prompt,
           tag: data.tag,
         });
       } catch (error) {
-        console.error('Failed to fetch prompt details:', error);
+        console.error('Error fetching prompt details:', error);
       }
     };
 
@@ -52,20 +51,25 @@ const EditPrompt = () => {
           prompt: post.prompt,
           tag: post.tag,
         }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.ok) {
         router.push('/');
+      } else {
+        throw new Error('Failed to update prompt');
       }
     } catch (error) {
-      console.error('Failed to update prompt:', error);
+      console.error('Error updating prompt:', error);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Suspense fallback={<div>Loading prompt details...</div>}>
+    <Suspense fallback={<div>Loading...</div>}>
       <Form
         type="Edit"
         post={post}
